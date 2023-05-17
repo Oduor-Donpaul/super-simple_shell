@@ -3,9 +3,11 @@
 /**
 * _or - handles logical operator OR
 * @head: pointer to head of a linked list
+* @count: number of executions
+* @program_name: program_name
 * Return: void
 */
-void _or(Node **head, int *status, pid_t *pid)
+void _or(Node **head, int *status, int *count, char **program_name)
 {
 	/*creates ref to the head of linked list*/
 	Node *list = *head;
@@ -31,7 +33,7 @@ void _or(Node **head, int *status, pid_t *pid)
 			if (*status != 0)
 			{
 				/*executes commands in temp assigning its exit status to status*/
-				*status = myexecve(temp, pid);
+				*status = myexecve(temp, count, program_name);
 				
 				/*frees each item in temp[] which is not null and sets it to null*/
 				for (j = 0; j < i; j++)
@@ -65,9 +67,11 @@ void _or(Node **head, int *status, pid_t *pid)
 /**
 * _and - handles logical operator AND
 * @head: pointer to head of a linked list
+* @count: number of executions
+* @program_name: program_name
 * Return: void
 */
-void _and(Node **head, int *status, pid_t *pid)
+void _and(Node **head, int *status, int *count, char **program_name)
 {
 	/*creates ref to the head of linked list*/
 	Node *list = *head;
@@ -93,7 +97,7 @@ void _and(Node **head, int *status, pid_t *pid)
 			if (*status == 0)
 			{
 				/*executes commands in temp assigning its exit status to status*/
-				*status = myexecve(temp, pid);
+				*status = myexecve(temp, count, program_name);
 				
 				/*frees each item in temp[] which is not null and sets it to null*/
 				for (j = 0; j < i; j++)
@@ -129,9 +133,10 @@ void _and(Node **head, int *status, pid_t *pid)
 /**
 * var_replace - handles variable replacement
 * @head: pointer to head of linked list containing commands
+* @status: exit status of previous child process
 * Return: nothing
 */
-void var_replace(Node **head, int *status, pid_t *pid)
+void var_replace(Node **head, int *status)
 {
 	/*creates reference to second node of the linked list*/
 	Node *list = (*head)->next;
@@ -140,21 +145,33 @@ void var_replace(Node **head, int *status, pid_t *pid)
 	/*checks if command in second node is "$$" and prints pid*/
 	if (strcmp(list->cmd, "$$") == 0)
 	{
-		printf("%d\n", *pid);
+		printf("%d\n", getpid());
 	}
 	/*checks if command in second node is "$?" and prints status*/
 	else if (strcmp(list->cmd, "$?") == 0)
 	{
 		printf("%d\n", *status);
 	} 
-	/*prints content of cmd in second node followed by  a new line*/
+	/*prints parh in second node followed by  a new line or empty line if path not available*/
 	else
 	{
+		/*duplicates the variable in second node to temp*/
 		temp = strdup(list->cmd);
+		/*duplicates variable stored in temp to str excluding '$'*/
 		str = strndup(temp+1, strlen(temp)-1);
+		/*gets value of path stored in str and stores it to path*/
 		path = _getenv(str);
-		write(STDOUT_FILENO, path, strlen(path));
-		write(STDOUT_FILENO, "\n", 1);
+		/*env not found empty line is printed*/
+		if (!path)
+		{
+			write(STDOUT_FILENO, "\n", 1);
+		}
+		/*value of the path is printed folloewed by a new line*/
+		else
+		{
+			write(STDOUT_FILENO, path, strlen(path));
+			write(STDOUT_FILENO, "\n", 1);
+		}
 
 	}
 	/*checks if temp is not null and frees it*/

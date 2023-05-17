@@ -25,10 +25,14 @@ void myenv(Node **head)
 	{
 		/*checks if items in temp[] are not 3*/
 		if (i != 3)
-			perror("./shell");
+			write(STDERR_FILENO, "./hsh : setenv : invalid number of arguments", 44);
 		/*if items are 3 _setenv() is called to set environment*/
 		else
-			_setenv(temp[1], temp[2], 0);
+		{
+			if (setenv(temp[1], temp[2], 1) != 0)
+				write(STDERR_FILENO, "./hsh : setenv : failed", 22);
+				
+		}
 
 	} 
 	/*checks if first item in temp[] is "unsetenv"*/
@@ -36,10 +40,19 @@ void myenv(Node **head)
 	{
 		/*checks if items in temp[] are not 2*/
 		if (i != 2)
-			perror("./shell");
+			write(STDERR_FILENO, "./hsh : unsetenv : invalid number of arguments", 46);
 		/*if items are 2 _unsetenv() is called to unset environment*/
 		else
-			_unsetenv(temp[1]);
+			if (unsetenv(temp[1]) != 0)
+				write(STDERR_FILENO, "./hsh : usetenv : failed", 24);
+	}
+	/*free temp[]*/
+	i = 0;
+	while (temp[i] != NULL)
+	{
+		free(temp[i]);
+		temp[i] = NULL;
+		i++;
 	}
 }
 
@@ -50,7 +63,7 @@ void myenv(Node **head)
  * Return: 0 on success
  */
 
-int _unsetenv(char *name)
+int _unsetenv(char *name) /*has bugs*/
 {
 	char **envp = environ;
 	int name_len = strlen(name);
@@ -87,7 +100,7 @@ void mycd(Node **head)
 {
 	/*creates reference to head of linked list*/
 	Node *list = *head;
-	char *temp[10];
+	char *temp[200];
 	int i = 0, j = 0;
 	size_t dir_len = 1024;
 	char *current_wd = NULL, *current_dir = NULL;

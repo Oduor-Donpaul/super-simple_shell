@@ -1,5 +1,7 @@
 #include "shell.h"
 
+char *myprogram_name;
+
 /**
 * append - appends a struct to a linked list
 * @head: pointer to a linked list
@@ -67,13 +69,14 @@ void free_list(Node **head)
 * @buffer: pointer to buffer
 * @no_read: pointer to no_read
 * @chars: chars read
+* @program_name: program_name
 * Return: void
 */
-void _interactive(Node **head, char **buffer, char **token, size_t *no_read, size_t *chars)
+void _interactive(Node **head, char **buffer, char **token, size_t *no_read, size_t *chars, char **program_name)
 {
 	size_t n = -1;
 	int status = 0;
-	pid_t pid = getpid();
+	int count = 1;
 	
 	/*prompts*/
 	write(STDOUT_FILENO, "$ ", 1+1);
@@ -82,10 +85,13 @@ void _interactive(Node **head, char **buffer, char **token, size_t *no_read, siz
 	{
 		/*checks if whitespace is entered and prompts agin*/
 		if (strspn(*buffer, " \t\n\r") == strlen(*buffer))
+		{
 			write(STDOUT_FILENO, "$ ", 1+1);
+		}
 		/*goes ahead to execute command entered*/
 		else
 		{
+			
 			/*replaces "\n" in buffer with "\0"*/
 			(*buffer)[strcspn((*buffer), "\n")] = '\0';
 			/*tokenizes buffer  with " " as delimiter*/
@@ -97,27 +103,27 @@ void _interactive(Node **head, char **buffer, char **token, size_t *no_read, siz
 				*token = strtok(NULL, " ");
 
 			}
-			/*parses commands in the linked list and calls various functions to execute them*/
-			_parser(head, &status, &pid);
-			if (*head != NULL)
-			{
-				free_list(head);
-				*head = NULL;
-			}
-			/*if (*token != NULL)
-			{
-				free(*token);
-				*token = NULL;
-			}*/
+			
 			/*checks if buffer is not null and frees it*/
 			if (*buffer != NULL)
 			{
 				free(*buffer);
 				*buffer = NULL;
 			}
-			/*prompts again*/
+			
+			
+			/*parses commands in the linked list and calls various functions to execute them*/
+			_parser(head, &status, &count, program_name);
 			write(STDOUT_FILENO, "$ ", 1+1);
+			
+			if (*head != NULL)
+			{
+				free_list(head);
+				*head = NULL;
+			}
+
 		}
+		count++;
 	}
 	/*checks if there could be unsuccesful read by getline and frees buffer again*/
 	if (*buffer != NULL)
@@ -133,19 +139,21 @@ void _interactive(Node **head, char **buffer, char **token, size_t *no_read, siz
 * @buffer: pointer to buffer
 * @no_read: pointer to no_read
 * @chars: chars read
+ @program_name: program_name
 * Return: void
 */
-void _non_interactive(Node **head, char **buffer, char **token, size_t *no_read, size_t *chars)
+void _non_interactive(Node **head, char **buffer, char **token, size_t *no_read, size_t *chars, char **program_name)
 {
 	size_t n = -1;
 	int status = 0;
-	pid_t pid = getpid();
+	int count = 1 ;
 	
 	/*reads characters of size chars from stdin till '\n' is encountered and stores them in buffer*/
 	while (((*no_read) = getline(buffer, chars, stdin)) != n)
 	{
 		/*handles case where only whitespace is pipped*/
 		_whitespace(buffer);
+
 		/*replaces "\n" in buffer with "\0"*/
 		(*buffer)[strcspn(*buffer, "\n")] = '\0';
 		/*tokenizes buffer  with " " as delimiter*/
@@ -156,8 +164,17 @@ void _non_interactive(Node **head, char **buffer, char **token, size_t *no_read,
 			append(head, *token);
 			*token = strtok(NULL, " ");
 		}
+		
+		/*checks if buffer is not null and frees it*/
+		if (*buffer != NULL)
+		{
+			free(*buffer);
+			*buffer = NULL;
+		}
+		
+		
 		/*parses commands in the linked list and calls various functions to execute them*/
-		_parser(head, &status, &pid);
+		_parser(head, &status, &count, program_name);
 		/*calls free_head() which frees linked list*/
 		free_head(head);
 		/*checks if token is not null and frees it*/
@@ -166,12 +183,8 @@ void _non_interactive(Node **head, char **buffer, char **token, size_t *no_read,
 			free(*token);
 			*token = NULL;
 		}
-		/*checks if buffer is not null and frees it*/
-		if (*buffer != NULL)
-		{
-			free(*buffer);
-			*buffer = NULL;
-		}
+		count++;
+		
 
 	}
 	/*checks if there could be unsuccesful read by getline and frees buffer again*/
@@ -195,6 +208,9 @@ int main(int ac, char *av[])
 	char *buffer = NULL;
 	char *token = NULL;
 	Node *head = NULL;
+	char *program_name = av[0];
+	
+	
 	
 	/*checks if the program was run with one argument and handles second argument approprietly*/
 	if (ac == 2)
@@ -211,7 +227,7 @@ int main(int ac, char *av[])
 		 else
 		{
 
-			_file(&head, av[1]);
+			_file(&head, av[1], &program_name);
 		}
 
 	}
@@ -221,12 +237,12 @@ int main(int ac, char *av[])
 		/*checks if input stream is std input and calls _interactive()*/
 		if (isatty(STDIN_FILENO) == 1)
 		{
-			_interactive(&head, &buffer, &token, &no_read, &chars);
+			_interactive(&head, &buffer, &token, &no_read, &chars, &program_name);
 		}
 		/*if input stream is not stdin _non_interactive() is called*/
 		else
 		{
-			_non_interactive(&head, &buffer, &token, &no_read, &chars);
+			_non_interactive(&head, &buffer, &token, &no_read, &chars, &program_name);
 		}
 	}
 	return (0);
