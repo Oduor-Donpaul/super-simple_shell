@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <fcntl.h>
+#include <dirent.h>
 typedef struct Node {
 	char *cmd; /*to hold commands*/
 	struct Node *next; /*to point to the next node*/
@@ -17,7 +18,7 @@ typedef struct Node {
 
 extern char **environ;
 
-extern char *myprogram_name;
+extern char *full_path;
 
 void append(Node **head, char *cmd);
 void free_list(Node **head);
@@ -46,5 +47,6 @@ void _file(Node **head, char *filename, char **program_name);
 void execute_file(Node **head, int fd, char **program_name);
 int check_command(char *commands[], char **program_name, int *count);
 char *itoa(int num, char *str);
+void _executables(char **list);
 
 #endif

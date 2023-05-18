@@ -88,7 +88,7 @@ int _setenv(char *name, char *value, int overwrite) /*has bugs*/
 */
 int check_command(char *commands[], char **program_name, int *count)
 {
-	char *list[] = {"ls", "/bin/ls", "/bin/pwd", "exit", "env", "setenv", "unsetenv", "cd", "echo", "pwd", NULL};
+	char *list[5000] = {NULL};
 	int i = 0;
 	int valid = 0;
 	/*creates a copy of the command name*/
@@ -96,15 +96,20 @@ int check_command(char *commands[], char **program_name, int *count)
 	char *str = malloc(100);
 	/*converts count to string*/
 	char *num_str = itoa(*count, str);
+	_executables(list);
 	
 	
 	
+	i = 0;
 	/*checks command is available in commands and updates valid to 1*/
-	while (list[i] != NULL)
+	if (list != NULL)
 	{
-		if (strcmp(list[i], commands[0]) == 0)
-			valid = 1;
-		i++;
+		while (list[i] != NULL)
+		{
+			if (strcmp(list[i], commands[0]) == 0)
+				valid = 1;
+			i++;
+		}
 	}
 	i = 0;
 	/*if command is not available*/
@@ -122,12 +127,23 @@ int check_command(char *commands[], char **program_name, int *count)
 			free(temp);
 		if (str != NULL)
 			free(str);
+		for (i = 0; list[i] != NULL; i++)
+       	 	{
+            		free(list[i]);
+            		list[i] = NULL;
+        	}
 
 
 		return (-1);
 
 	}
 
+
+	 for (i = 0; list[i] != NULL; i++)
+        {
+            free(list[i]);
+            list[i] = NULL;
+        }
 
 	if (temp != NULL)
 		free(temp);

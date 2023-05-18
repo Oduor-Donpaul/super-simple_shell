@@ -1,6 +1,6 @@
 #include "shell.h"
 
-char *myprogram_name;
+char *full_path;
 
 /**
 * append - appends a struct to a linked list
@@ -74,9 +74,14 @@ void free_list(Node **head)
 */
 void _interactive(Node **head, char **buffer, char **token, size_t *no_read, size_t *chars, char **program_name)
 {
+
 	size_t n = -1;
 	int status = 0;
 	int count = 1;
+	
+	
+	
+	
 	
 	/*prompts*/
 	write(STDOUT_FILENO, "$ ", 1+1);
@@ -110,8 +115,7 @@ void _interactive(Node **head, char **buffer, char **token, size_t *no_read, siz
 				free(*buffer);
 				*buffer = NULL;
 			}
-			
-			
+
 			/*parses commands in the linked list and calls various functions to execute them*/
 			_parser(head, &status, &count, program_name);
 			write(STDOUT_FILENO, "$ ", 1+1);
@@ -121,6 +125,7 @@ void _interactive(Node **head, char **buffer, char **token, size_t *no_read, siz
 				free_list(head);
 				*head = NULL;
 			}
+			
 
 		}
 		count++;
@@ -147,6 +152,8 @@ void _non_interactive(Node **head, char **buffer, char **token, size_t *no_read,
 	size_t n = -1;
 	int status = 0;
 	int count = 1 ;
+	
+	
 	
 	/*reads characters of size chars from stdin till '\n' is encountered and stores them in buffer*/
 	while (((*no_read) = getline(buffer, chars, stdin)) != n)
@@ -210,7 +217,7 @@ int main(int ac, char *av[])
 	Node *head = NULL;
 	char *program_name = av[0];
 	
-	
+	full_path = _getenv("PATH");
 	
 	/*checks if the program was run with one argument and handles second argument approprietly*/
 	if (ac == 2)

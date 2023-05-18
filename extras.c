@@ -43,7 +43,7 @@ int myexecve(char *commands[], int *count, char **program_name)
 		/*checks if creating child process failed*/
 		if (pid == -1)
 		{
-			perror(myprogram_name);
+			perror("pid");
 			write(STDOUT_FILENO, "fork\n", 5);
 		}
 		/*checks if child process was successfuly created and calls execve() */
@@ -52,7 +52,7 @@ int myexecve(char *commands[], int *count, char **program_name)
 			/*executes commands in commands[] with str as path and exits if execution is not success */
 			if (execve(str, commands, environ) == -1)
 			{
-				perror(myprogram_name);
+				perror("execve");
 			}
 		} 
 		/*parent process saves exit status of child process with PID pid to status */
